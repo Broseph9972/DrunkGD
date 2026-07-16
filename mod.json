@@ -1,0 +1,17 @@
+{
+	"geode": "5.8.2",
+	"gd": {
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
+	},
+	"id": "jqseph9972.drunkgd",
+	"name": "DrunkGD",
+	"version": "v1.0.0",
+	"developer": "Jqseph9972",
+	"description": "A mod for Geometry dash using the geode SDK that slightly speeds up and slows down your game.",
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	}
+}
