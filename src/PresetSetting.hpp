@@ -109,7 +109,7 @@ struct DrunkParams {
 inline matjson::Value const& drunkPresetJson() {
 	static matjson::Value presets = matjson::parse(R"({
 		"barely": {
-			"comment":           "Tiny, slow, occasional drift.",
+			"comment":           "wdym i didnt mess with your game dude",
 			"min-speed":         0.96,
 			"max-speed":         1.04,
 			"randomize-interval": true,
@@ -122,20 +122,20 @@ inline matjson::Value const& drunkPresetJson() {
 			"gravity-drift":     false
 		},
 		"annoying": {
-			"comment":           "Small range but changes constantly and snaps quickly.",
-			"min-speed":         0.96,
-			"max-speed":         1.04,
+			"comment":           "you had a 4 loko",
+			"min-speed":         0.90,
+			"max-speed":         1.1,
 			"randomize-interval": true,
 			"min-interval":      0.2,
 			"max-interval":      0.6,
-			"max-step":          1.0,
+			"max-step":          2.0,
 			"transition-time":   0.12,
 			"music-speed":       true,
 			"screen-shake":      false,
 			"gravity-drift":     false
 		},
 		"drunk": {
-			"comment":           "The classic experience.",
+			"comment":           "4 beers down",
 			"min-speed":         0.80,
 			"max-speed":         1.20,
 			"randomize-interval": true,
@@ -148,13 +148,13 @@ inline matjson::Value const& drunkPresetJson() {
 			"gravity-drift":     false
 		},
 		"wasted": {
-			"comment":           "Wild swings, shaking, and warped gravity.",
-			"min-speed":         0.75,
-			"max-speed":         1.50,
+			"comment":           "on your 2nd six pack",
+			"min-speed":         0.2,
+			"max-speed":         2.50,
 			"randomize-interval": true,
 			"min-interval":      1.0,
-			"max-interval":      6.0,
-			"max-step":          1.0,
+			"max-interval":      3.0,
+			"max-step":          3.0,
 			"transition-time":   0.4,
 			"music-speed":       true,
 			"screen-shake":      true,
