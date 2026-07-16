@@ -11,7 +11,53 @@
 	"version": "v1.0.0",
 	"developer": "Jqseph9972",
 	"description": "A mod for Geometry dash using the geode SDK that slightly speeds up and slows down your game.",
-	"dependencies": {
-		"geode.node-ids": ">=v1.23.3"
+	"settings": {
+		"info": {
+			"name": "Drunk Settings",
+			"type": "title",
+			"description": "Configure the randomized speed drift effect."
+		},
+		"enabled": {
+			"name": "Enable Effect",
+			"type": "bool",
+			"default": false,
+			"description": "Whether the randomized speed drift effect is active during gameplay."
+		},
+		"intensity": {
+			"name": "Intensity",
+			"type": "float",
+			"default": 0.3,
+			"min": 0.0,
+			"max": 1.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "How far the game speed can drift from normal."
+		},
+		"min-interval": {
+			"name": "Min Interval",
+			"type": "float",
+			"default": 2.0,
+			"min": 1.0,
+			"max": 30.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "The fastest the speed can re-randomize, in seconds."
+		},
+		"max-interval": {
+			"name": "Max Interval",
+			"type": "float",
+			"default": 8.0,
+			"min": 1.0,
+			"max": 60.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "The slowest the speed can re-randomize, in seconds."
+		}
 	}
 }
