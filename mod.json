@@ -7,10 +7,10 @@
 		"ios": "2.2081"
 	},
 	"id": "jqseph9972.drunkgd",
-	"name": "DrunkGD",
+	"name": "Alchoholism",
 	"version": "v1.0.0",
 	"developer": "Jqseph9972",
-	"description": "A mod for Geometry dash using the geode SDK that slightly speeds up and slows down your game.",
+	"description": "Makes your game drunk at different levels. very customizable.",
 	"settings": {
 		"enabled": {
 			"name": "Enable Effect",
