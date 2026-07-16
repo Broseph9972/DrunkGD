@@ -72,6 +72,8 @@ struct DrunkParams {
 	bool musicSpeed;
 	bool screenShake;
 	bool gravityDrift;
+	float gravityMin;    // lowest gravity multiplier the drift can reach
+	float gravityMax;    // highest gravity multiplier the drift can reach
 
 	// Builds a DrunkParams from a JSON object, falling back to the given
 	// defaults for any keys that are missing or the wrong type. This makes the
@@ -95,6 +97,8 @@ struct DrunkParams {
 			flag("music-speed", def.musicSpeed),
 			flag("screen-shake", def.screenShake),
 			flag("gravity-drift", def.gravityDrift),
+			num("gravity-min", def.gravityMin),
+			num("gravity-max", def.gravityMax),
 		};
 	}
 };
@@ -158,7 +162,9 @@ inline matjson::Value const& drunkPresetJson() {
 			"transition-time":   0.4,
 			"music-speed":       true,
 			"screen-shake":      true,
-			"gravity-drift":     true
+			"gravity-drift":     true,
+			"gravity-min":       0.6,
+			"gravity-max":       1.4
 		}
 	})").unwrapOr(matjson::Value::object());
 	return presets;
@@ -184,11 +190,13 @@ inline DrunkParams getPresetParams(DrunkPreset preset) {
 			mod->getSettingValue<bool>("music-speed"),
 			mod->getSettingValue<bool>("screen-shake"),
 			mod->getSettingValue<bool>("gravity-drift"),
+			static_cast<float>(mod->getSettingValue<double>("gravity-min")),
+			static_cast<float>(mod->getSettingValue<double>("gravity-max")),
 		};
 	}
 
 	// Sensible fallback used if a key is missing from the JSON.
-	static const DrunkParams defaults = { 0.80f, 1.20f, true, 4.f, 2.f, 6.f, 1.f, 0.7f, true, false, false };
+	static const DrunkParams defaults = { 0.80f, 1.20f, true, 4.f, 2.f, 6.f, 1.f, 0.7f, true, false, false, 0.6f, 1.4f };
 
 	std::string key = matjson::Serialize<DrunkPreset>::toJson(preset).asString().unwrapOr("drunk");
 	auto const& presets = drunkPresetJson();

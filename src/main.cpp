@@ -79,12 +79,10 @@ class $modify(DrunkScheduler, CCScheduler) {
 		engine->m_backgroundMusicChannel->setPitch(scale);
 	}
 
-	// Warps the players' gravity along with the speed. Uses the sign of the
-	// current gravity mod so flipped-gravity sections stay flipped, and dampens
-	// the effect so it stays "drunk" rather than unplayable. Pass 1.0 to reset.
-	void applyGravity(GJBaseGameLayer* gjbgl, float scale) {
-		// Dampen: only apply half of the speed deviation to gravity.
-		float factor = 1.f + (scale - 1.f) * 0.5f;
+	// Sets the players' gravity to the given multiplier. Uses the sign of the
+	// current gravity mod so flipped-gravity sections stay flipped. Pass 1.0 to
+	// reset to normal gravity.
+	void applyGravity(GJBaseGameLayer* gjbgl, float factor) {
 		for (auto player : {gjbgl->m_player1, gjbgl->m_player2}) {
 			if (!player) continue;
 			float sign = player->m_gravityMod >= 0.f ? 1.f : -1.f;
@@ -134,7 +132,13 @@ class $modify(DrunkScheduler, CCScheduler) {
 			}
 
 			if (params.gravityDrift) {
-				applyGravity(gjbgl, s_currentScale);
+				// Map the current speed (within its min/max range) onto the
+				// configured gravity range, so faster = one end, slower = other.
+				float span = params.maxSpeed - params.minSpeed;
+				float t = span > 0.0001f ? (s_currentScale - params.minSpeed) / span : 0.5f;
+				t = std::clamp(t, 0.f, 1.f);
+				float gravity = params.gravityMin + t * (params.gravityMax - params.gravityMin);
+				applyGravity(gjbgl, gravity);
 			}
 
 			// Shake the screen (using GD's built-in camera shake) when enabled.

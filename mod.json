@@ -149,7 +149,33 @@
 			"type": "bool",
 			"default": false,
 			"enable-if": "enabled",
-			"description": "Also subtly warp the player's gravity along with the speed, making jumps feel heavier/floatier (automatically on for the Wasted preset). Warning: this makes levels genuinely harder."
+			"description": "Also warp the player's gravity along with the speed, making jumps feel heavier/floatier (automatically on for the Wasted preset). Warning: this makes levels genuinely harder."
+		},
+		"gravity-min": {
+			"name": "Min Gravity",
+			"type": "float",
+			"default": 0.6,
+			"min": 0.1,
+			"max": 1.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled && gravity-drift",
+			"enable-if-description": "Only used when 'Gravity Drift' is on.",
+			"description": "The lightest (floatiest) gravity the drift can reach. 1.0 is normal."
+		},
+		"gravity-max": {
+			"name": "Max Gravity",
+			"type": "float",
+			"default": 1.4,
+			"min": 1.0,
+			"max": 2.5,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled && gravity-drift",
+			"enable-if-description": "Only used when 'Gravity Drift' is on.",
+			"description": "The heaviest gravity the drift can reach. 1.0 is normal."
 		},
 		"trolling-title": {
 			"name": "Trolling",
