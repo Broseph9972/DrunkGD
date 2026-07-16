@@ -7,11 +7,6 @@
 
 using namespace geode::prelude;
 
-/**
- * The "how drunk are you" presets the user can pick from at the top of the
- * settings. Each preset (except Custom) is the source of truth at runtime;
- * Custom reads the individual values from the Advanced section instead.
- */
 enum class DrunkPreset {
 	BarelyNoticeable,
 	Annoying,
@@ -20,10 +15,6 @@ enum class DrunkPreset {
 	Custom,
 };
 
-/**
- * JSON (de)serialization for the preset enum so it can be stored as a setting
- * value. Stored as a simple string.
- */
 template <>
 struct matjson::Serialize<DrunkPreset> {
 	static matjson::Value toJson(DrunkPreset const& value) {
@@ -46,9 +37,6 @@ struct matjson::Serialize<DrunkPreset> {
 	}
 };
 
-// Forward declaration so the specialization below can refer to it at global
-// scope (declaring it inside the geode namespace would create an ambiguous
-// geode::PresetSettingV3).
 class PresetSettingV3;
 
 template <>
@@ -56,28 +44,21 @@ struct geode::SettingTypeForValueType<DrunkPreset> {
 	using SettingType = ::PresetSettingV3;
 };
 
-/**
- * The full bundle of parameters that drive the drift effect. The scheduler
- * hook reads one of these every frame based on the selected preset.
- */
 struct DrunkParams {
 	float minSpeed;
 	float maxSpeed;
 	bool randomizeInterval;
-	float interval;      // used when randomizeInterval is false
+	float interval;
 	float minInterval;
 	float maxInterval;
-	float maxStep;       // largest jump per re-randomize (1.0 = no limit)
+	float maxStep;
 	float transitionTime;
 	bool musicSpeed;
 	bool screenShake;
 	bool gravityDrift;
-	float gravityMin;    // lowest gravity multiplier the drift can reach
-	float gravityMax;    // highest gravity multiplier the drift can reach
+	float gravityMin;
+	float gravityMax;
 
-	// Builds a DrunkParams from a JSON object, falling back to the given
-	// defaults for any keys that are missing or the wrong type. This makes the
-	// preset definitions below easy to read and edit by hand.
 	static DrunkParams fromJson(matjson::Value const& j, DrunkParams const& def = {}) {
 		auto num = [&](const char* key, float fallback) -> float {
 			return static_cast<float>(j.contains(key) ? j[key].asDouble().unwrapOr(fallback) : fallback);
@@ -103,17 +84,10 @@ struct DrunkParams {
 	}
 };
 
-/**
- * The built-in presets, written as plain JSON so they're easy to tweak by hand.
- * Each object maps directly onto a DrunkParams. Any key you leave out just
- * falls back to a sensible default. To change how a preset feels, edit the
- * numbers here and rebuild. (The "custom" preset is handled separately - it
- * reads live from the Advanced-section settings instead.)
- */
 inline matjson::Value const& drunkPresetJson() {
 	static matjson::Value presets = matjson::parse(R"({
 		"barely": {
-			"comment":           "wdym i didnt mess with your game dude",
+			"comment":           "Subtle drift.",
 			"min-speed":         0.96,
 			"max-speed":         1.04,
 			"randomize-interval": true,
@@ -126,7 +100,7 @@ inline matjson::Value const& drunkPresetJson() {
 			"gravity-drift":     false
 		},
 		"annoying": {
-			"comment":           "you had a 4 loko",
+			"comment":           "Frequent jitter.",
 			"min-speed":         0.90,
 			"max-speed":         1.1,
 			"randomize-interval": true,
@@ -139,7 +113,7 @@ inline matjson::Value const& drunkPresetJson() {
 			"gravity-drift":     false
 		},
 		"drunk": {
-			"comment":           "4 beers down",
+			"comment":           "Moderate drift.",
 			"min-speed":         0.80,
 			"max-speed":         1.20,
 			"randomize-interval": true,
@@ -152,7 +126,7 @@ inline matjson::Value const& drunkPresetJson() {
 			"gravity-drift":     false
 		},
 		"wasted": {
-			"comment":           "on your 2nd six pack",
+			"comment":           "Strong drift with shake and gravity.",
 			"min-speed":         0.2,
 			"max-speed":         1.5,
 			"randomize-interval": true,
@@ -170,11 +144,6 @@ inline matjson::Value const& drunkPresetJson() {
 	return presets;
 }
 
-/**
- * Returns the parameters for a given preset. For Custom, the values are read
- * live from the Advanced-section settings; every other preset uses the values
- * from the JSON above and ignores the Advanced section entirely.
- */
 inline DrunkParams getPresetParams(DrunkPreset preset) {
 	if (preset == DrunkPreset::Custom) {
 		auto mod = Mod::get();
@@ -195,7 +164,6 @@ inline DrunkParams getPresetParams(DrunkPreset preset) {
 		};
 	}
 
-	// Sensible fallback used if a key is missing from the JSON.
 	static const DrunkParams defaults = { 0.80f, 1.20f, true, 4.f, 2.f, 6.f, 1.f, 0.7f, true, false, false, 0.6f, 1.4f };
 
 	std::string key = matjson::Serialize<DrunkPreset>::toJson(preset).asString().unwrapOr("drunk");
@@ -206,9 +174,6 @@ inline DrunkParams getPresetParams(DrunkPreset preset) {
 	return defaults;
 }
 
-/**
- * The setting definition. Just stores the currently selected preset.
- */
 class PresetSettingV3 : public SettingBaseValueV3<DrunkPreset> {
 public:
 	static Result<std::shared_ptr<SettingV3>> parse(
@@ -224,9 +189,6 @@ public:
 	SettingNodeV3* createNode(float width) override;
 };
 
-/**
- * The UI node: four colored buttons the user picks between.
- */
 class PresetSettingNodeV3 : public SettingValueNodeV3<PresetSettingV3> {
 protected:
 	std::vector<std::pair<CCMenuItemSpriteExtra*, DrunkPreset>> m_buttons;
@@ -279,7 +241,6 @@ protected:
 			auto spr = static_cast<ButtonSprite*>(btn->getNormalImage());
 			spr->setCascadeColorEnabled(true);
 			spr->setCascadeOpacityEnabled(true);
-			// Selected button is bright and slightly bigger; others dim.
 			btn->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
 			spr->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
 			spr->setScale(selected ? .46f : .38f);

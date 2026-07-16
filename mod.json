@@ -10,31 +10,31 @@
 	"name": "Alchoholism",
 	"version": "v1.0.0",
 	"developer": "Jqseph9972",
-	"description": "Makes your game drunk at different levels. very customizable.",
+	"description": "Configurable speed drift effect.",
 	"settings": {
 		"enabled": {
 			"name": "Enable Effect",
 			"type": "bool",
 			"default": false,
-			"description": "Whether the randomized speed drift effect is active during gameplay."
+			"description": "Toggles the drift effect."
 		},
 		"pause-menu-button": {
 			"name": "Show Button in Pause Menu",
 			"type": "bool",
 			"default": false,
-			"description": "Adds a DrunkGD button to the in-game pause menu that opens this same settings menu."
+			"description": "Adds a pause-menu settings button."
 		},
 		"preset": {
 			"name": "Preset",
 			"type": "custom:preset-selector",
 			"default": "drunk",
 			"enable-if": "enabled",
-			"description": "How drunk you want to be. <cg>Barely</c> is a gentle drift, <cb>Annoying</c> jitters constantly, <cy>Drunk</c> is the classic experience, and <cr>Wasted</c> goes wild with shaking and gravity. Pick <cp>Custom</c> to use the Advanced settings below instead."
+			"description": "Selects the active preset."
 		},
 		"advanced-title": {
 			"name": "Advanced (Custom preset only)",
 			"type": "title",
-			"description": "These values are only used when the Custom preset is selected. The other presets ignore them."
+			"description": "Used only by the Custom preset."
 		},
 		"min-speed": {
 			"name": "Min Speed",
@@ -46,7 +46,7 @@
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "The slowest the game speed can drift to (as a multiplier)."
+			"description": "Minimum speed multiplier."
 		},
 		"max-speed": {
 			"name": "Max Speed",
@@ -58,14 +58,14 @@
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "The fastest the game speed can drift to (as a multiplier)."
+			"description": "Maximum speed multiplier."
 		},
 		"randomize-interval": {
 			"name": "Randomize How Often",
 			"type": "bool",
 			"default": true,
 			"enable-if": "enabled",
-			"description": "When on, the time between speed changes is randomized between Min and Max Interval. When off, a single fixed Interval is used."
+			"description": "Randomizes the interval."
 		},
 		"interval": {
 			"name": "Interval",
@@ -78,7 +78,7 @@
 			},
 			"enable-if": "enabled && !randomize-interval",
 			"enable-if-description": "Only used when 'Randomize How Often' is off.",
-			"description": "How often the speed re-randomizes, in seconds (fixed)."
+			"description": "Fixed interval between changes."
 		},
 		"min-interval": {
 			"name": "Min Interval",
@@ -91,7 +91,7 @@
 			},
 			"enable-if": "enabled && randomize-interval",
 			"enable-if-description": "Only used when 'Randomize How Often' is on.",
-			"description": "The fastest the speed can re-randomize, in seconds."
+			"description": "Minimum randomized interval."
 		},
 		"max-interval": {
 			"name": "Max Interval",
@@ -104,7 +104,7 @@
 			},
 			"enable-if": "enabled && randomize-interval",
 			"enable-if-description": "Only used when 'Randomize How Often' is on.",
-			"description": "The slowest the speed can re-randomize, in seconds."
+			"description": "Maximum randomized interval."
 		},
 		"max-step": {
 			"name": "Max Change Per Step",
@@ -116,7 +116,7 @@
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "The largest amount the target speed can jump by each time it re-randomizes. Small values make the drift gentle and gradual; 1.0 means no limit."
+			"description": "Maximum change per step."
 		},
 		"transition-time": {
 			"name": "Transition Time",
@@ -128,28 +128,28 @@
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "Roughly how long (in seconds) it takes to glide from one speed to the next. Higher values make the change slower and less obvious; 0 snaps instantly."
+			"description": "Time to move toward the next speed."
 		},
 		"music-speed": {
 			"name": "Change Music Speed",
 			"type": "bool",
 			"default": true,
 			"enable-if": "enabled",
-			"description": "Also pitch/speed the music up and down along with the gameplay."
+			"description": "Also changes music pitch."
 		},
 		"screen-shake": {
 			"name": "Screen Shake",
 			"type": "bool",
 			"default": false,
 			"enable-if": "enabled",
-			"description": "Shake the screen while the speed is drifting (automatically on for the Wasted preset)."
+			"description": "Shakes the screen during drift."
 		},
 		"gravity-drift": {
 			"name": "Gravity Drift",
 			"type": "bool",
 			"default": false,
 			"enable-if": "enabled",
-			"description": "Also warp the player's gravity along with the speed, making jumps feel heavier/floatier (automatically on for the Wasted preset). Warning: this makes levels genuinely harder."
+			"description": "Adjusts gravity with speed."
 		},
 		"gravity-min": {
 			"name": "Min Gravity",
@@ -162,7 +162,7 @@
 			},
 			"enable-if": "enabled && gravity-drift",
 			"enable-if-description": "Only used when 'Gravity Drift' is on.",
-			"description": "The lightest (floatiest) gravity the drift can reach. 1.0 is normal."
+			"description": "Minimum gravity multiplier."
 		},
 		"gravity-max": {
 			"name": "Max Gravity",
@@ -175,19 +175,19 @@
 			},
 			"enable-if": "enabled && gravity-drift",
 			"enable-if-description": "Only used when 'Gravity Drift' is on.",
-			"description": "The heaviest gravity the drift can reach. 1.0 is normal."
+			"description": "Maximum gravity multiplier."
 		},
 		"trolling-title": {
 			"name": "Trolling",
 			"type": "title",
-			"description": "To make ur friends think it's just them being bad at the game. Best used when drunkness is subtle."
+			"description": "Temporary disable controls."
 		},
 		"panic-button-enabled": {
 			"name": "Disable on button held",
 			"type": "bool",
 			"default": false,
 			"enable-if": "enabled",
-			"description": "While the chosen button is held down, all effects instantly turn off (and snap back to normal speed). Let go and the drift returns."
+			"description": "Disables effects while held."
 		},
 		"panic-button": {
 			"name": "Panic Button",
@@ -195,7 +195,7 @@
 			"default": "CtrlLeft",
 			"enable-if": "enabled && panic-button-enabled",
 			"enable-if-description": "Only used when 'Disable on button held' is on.",
-			"description": "The button to hold to secretly disable all effects."
+			"description": "Keybind used to disable effects."
 		}
 	}
 }
