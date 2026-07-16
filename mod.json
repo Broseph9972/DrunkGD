@@ -24,6 +24,12 @@
 			"default": false,
 			"description": "Adds a pause-menu settings button."
 		},
+		"speed-viewer": {
+			"name": "Show Speed Viewer",
+			"type": "bool",
+			"default": true,
+			"description": "Shows the speed label in the top-right corner."
+		},
 		"preset": {
 			"name": "Preset",
 			"type": "custom:preset-selector",

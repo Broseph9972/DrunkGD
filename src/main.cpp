@@ -62,6 +62,7 @@ class $modify(DrunkScheduler, CCScheduler) {
 	void update(float dt) {
 		auto mod = Mod::get();
 		bool enabled = mod->getSettingValue<bool>("enabled");
+		bool showSpeedViewer = mod->getSettingValue<bool>("speed-viewer");
 		auto gjbgl = GJBaseGameLayer::get();
 		bool inGameplay = gjbgl != nullptr;
 
@@ -131,10 +132,14 @@ class $modify(DrunkScheduler, CCScheduler) {
 			}
 		}
 
-		if (inGameplay) {
+		if (inGameplay && showSpeedViewer) {
 			if (auto label = getOrCreateLabel(gjbgl)) {
 				label->setString(fmt::format("{:.2f}x", s_currentScale).c_str());
 				label->setVisible(enabled);
+			}
+		} else if (inGameplay) {
+			if (auto label = typeinfo_cast<CCLabelBMFont*>(gjbgl->m_uiLayer ? gjbgl->m_uiLayer->getChildByID(SPEED_LABEL_ID) : nullptr)) {
+				label->setVisible(false);
 			}
 		}
 
