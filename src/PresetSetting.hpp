@@ -1,4 +1,4 @@
-om #pragma once
+#pragma once
 
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/loader/Mod.hpp>
@@ -39,9 +39,14 @@ struct matjson::Serialize<DrunkPreset> {
 	}
 };
 
+// Forward declaration so the specialization below can refer to it at global
+// scope (declaring it inside the geode namespace would create an ambiguous
+// geode::PresetSettingV3).
+class PresetSettingV3;
+
 template <>
 struct geode::SettingTypeForValueType<DrunkPreset> {
-	using SettingType = class PresetSettingV3;
+	using SettingType = ::PresetSettingV3;
 };
 
 /**

@@ -125,6 +125,26 @@
 			"default": false,
 			"enable-if": "enabled",
 			"description": "Shake the screen while the speed is drifting (automatically on for the Wasted preset)."
+		},
+		"trolling-title": {
+			"name": "Trolling",
+			"type": "title",
+			"description": "To make ur friends think it's just them being bad at the game. Best used when drunkness is subtle."
+		},
+		"panic-button-enabled": {
+			"name": "Disable on button held",
+			"type": "bool",
+			"default": false,
+			"enable-if": "enabled",
+			"description": "While the chosen button is held down, all effects instantly turn off (and snap back to normal speed). Let go and the drift returns."
+		},
+		"panic-button": {
+			"name": "Panic Button",
+			"type": "keybind",
+			"default": "CtrlLeft",
+			"enable-if": "enabled && panic-button-enabled",
+			"enable-if-description": "Only used when 'Disable on button held' is on.",
+			"description": "The button to hold to secretly disable all effects."
 		}
 	}
 }
