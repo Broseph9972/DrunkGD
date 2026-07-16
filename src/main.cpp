@@ -125,6 +125,11 @@ class $modify(DrunkScheduler, CCScheduler) {
 			// so larger values make the drift slower and less obvious.
 			float rate = params.transitionTime > 0.01f ? std::min(dt / params.transitionTime, 1.f) : 1.f;
 			s_currentScale += (s_targetScale - s_currentScale) * rate;
+			this->setTimeScale(s_currentScale);
+
+			if (params.musicSpeed) {
+				applyMusicSpeed(s_currentScale);
+			}
 
 			if (params.gravityDrift) {
 				// Map the current speed (within its min/max range) onto the
@@ -149,9 +154,15 @@ class $modify(DrunkScheduler, CCScheduler) {
 		} else {
 			// Not active (disabled, not in gameplay, or panic held): return to
 			// normal speed / pitch.
+			if (this->getTimeScale() != 1.f) {
+				this->setTimeScale(1.f);
+			}
 			s_currentScale = 1.f;
 			s_targetScale = 1.f;
 			s_timer = 0.f;
+			if (inGameplay && params.musicSpeed) {
+				applyMusicSpeed(1.f);
+			}
 			if (inGameplay && params.gravityDrift) {
 				applyGravity(gjbgl, 1.f);
 			}
@@ -165,31 +176,7 @@ class $modify(DrunkScheduler, CCScheduler) {
 			}
 		}
 
-		// Run the base scheduler update *before* touching the time scale /
-		// music pitch. GD implements level TimeWarp triggers by writing to
-		// this same CCScheduler's time scale (via GJBaseGameLayer::update(),
-		// which is itself one of the scheduled targets processed below), so
-		// if we set it beforehand GD's own trigger logic simply overwrites
-		// our value later in the same call, and vice versa next frame - the
-		// two fight every frame, which is what caused the stutter/desync.
 		CCScheduler::update(dt);
-
-		// Whatever the scheduler's time scale is now reflects GD's own
-		// native TimeWarp trigger state for this frame (or 1.0 if none is
-		// active). Combine our drift multiplier with it multiplicatively
-		// instead of overwriting it, then apply the result now so it takes
-		// effect starting next frame, after GD has had its turn.
-		float nativeWarp = this->getTimeScale();
-		if (nativeWarp <= 0.f) nativeWarp = 1.f;
-		float finalScale = active ? s_currentScale * nativeWarp : nativeWarp;
-
-		if (this->getTimeScale() != finalScale) {
-			this->setTimeScale(finalScale);
-		}
-
-		if (inGameplay && params.musicSpeed) {
-			applyMusicSpeed(finalScale);
-		}
 	}
 };
 
