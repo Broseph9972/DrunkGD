@@ -12,28 +12,67 @@
 	"developer": "Jqseph9972",
 	"description": "A mod for Geometry dash using the geode SDK that slightly speeds up and slows down your game.",
 	"settings": {
-		"info": {
-			"name": "Drunk Settings",
-			"type": "title",
-			"description": "Configure the randomized speed drift effect."
-		},
 		"enabled": {
 			"name": "Enable Effect",
 			"type": "bool",
 			"default": false,
 			"description": "Whether the randomized speed drift effect is active during gameplay."
 		},
-		"intensity": {
-			"name": "Intensity",
+		"preset": {
+			"name": "Preset",
+			"type": "custom:preset-selector",
+			"default": "drunk",
+			"enable-if": "enabled",
+			"description": "Quick presets. <cg>Barely Noticeable</c> is a gentle drift, <cy>Drunk</c> is the classic experience, and <cr>Wasted</c> goes wild and shakes the screen. Picking a preset overwrites the advanced values below."
+		},
+		"advanced-title": {
+			"name": "Advanced",
+			"type": "title",
+			"description": "Fine-tune the effect yourself. Changing these leaves the preset selection as-is."
+		},
+		"min-speed": {
+			"name": "Min Speed",
 			"type": "float",
-			"default": 0.3,
-			"min": 0.0,
+			"default": 0.8,
+			"min": 0.3,
 			"max": 1.0,
 			"control": {
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "How far the game speed can drift from normal."
+			"description": "The slowest the game speed can drift to (as a multiplier)."
+		},
+		"max-speed": {
+			"name": "Max Speed",
+			"type": "float",
+			"default": 1.2,
+			"min": 1.0,
+			"max": 2.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "The fastest the game speed can drift to (as a multiplier)."
+		},
+		"randomize-interval": {
+			"name": "Randomize How Often",
+			"type": "bool",
+			"default": true,
+			"enable-if": "enabled",
+			"description": "When on, the time between speed changes is randomized between Min and Max Interval. When off, a single fixed Interval is used."
+		},
+		"interval": {
+			"name": "Interval",
+			"type": "float",
+			"default": 4.0,
+			"min": 1.0,
+			"max": 30.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled && !randomize-interval",
+			"enable-if-description": "Only used when 'Randomize How Often' is off.",
+			"description": "How often the speed re-randomizes, in seconds (fixed)."
 		},
 		"min-interval": {
 			"name": "Min Interval",
@@ -44,20 +83,48 @@
 			"control": {
 				"slider": true
 			},
-			"enable-if": "enabled",
+			"enable-if": "enabled && randomize-interval",
+			"enable-if-description": "Only used when 'Randomize How Often' is on.",
 			"description": "The fastest the speed can re-randomize, in seconds."
 		},
 		"max-interval": {
 			"name": "Max Interval",
 			"type": "float",
-			"default": 8.0,
+			"default": 6.0,
 			"min": 1.0,
 			"max": 60.0,
 			"control": {
 				"slider": true
 			},
-			"enable-if": "enabled",
+			"enable-if": "enabled && randomize-interval",
+			"enable-if-description": "Only used when 'Randomize How Often' is on.",
 			"description": "The slowest the speed can re-randomize, in seconds."
+		},
+		"smoothing": {
+			"name": "Smoothing",
+			"type": "float",
+			"default": 1.5,
+			"min": 0.2,
+			"max": 5.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "How quickly the speed eases toward each new target. Higher is snappier."
+		},
+		"music-speed": {
+			"name": "Change Music Speed",
+			"type": "bool",
+			"default": true,
+			"enable-if": "enabled",
+			"description": "Also pitch/speed the music up and down along with the gameplay."
+		},
+		"screen-shake": {
+			"name": "Screen Shake",
+			"type": "bool",
+			"default": false,
+			"enable-if": "enabled",
+			"description": "Shake the screen while the speed is drifting (automatically on for the Wasted preset)."
 		}
 	}
 }
