@@ -11,6 +11,7 @@
 	"version": "v1.0.0",
 	"developer": "Jqseph9972",
 	"description": "Configurable speed drift effect.",
+	"tags": ["joke"],
 	"settings": {
 		"enabled": {
 			"name": "Enable Effect",
