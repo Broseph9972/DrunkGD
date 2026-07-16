@@ -135,7 +135,7 @@ inline matjson::Value const& drunkPresetJson() {
 			"max-step":          2.0,
 			"transition-time":   0.12,
 			"music-speed":       true,
-			"screen-shake":      false,
+			"screen-shake":      true,
 			"gravity-drift":     false
 		},
 		"drunk": {
