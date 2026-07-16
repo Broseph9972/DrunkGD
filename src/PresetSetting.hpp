@@ -154,10 +154,10 @@ inline matjson::Value const& drunkPresetJson() {
 		"wasted": {
 			"comment":           "on your 2nd six pack",
 			"min-speed":         0.2,
-			"max-speed":         2.50,
+			"max-speed":         1.5,
 			"randomize-interval": true,
 			"min-interval":      1.0,
-			"max-interval":      3.0,
+			"max-interval":      2.0,
 			"max-step":          3.0,
 			"transition-time":   0.4,
 			"music-speed":       true,
