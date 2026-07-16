@@ -79,11 +79,28 @@ class $modify(DrunkScheduler, CCScheduler) {
 		engine->m_backgroundMusicChannel->setPitch(scale);
 	}
 
+	// Warps the players' gravity along with the speed. Uses the sign of the
+	// current gravity mod so flipped-gravity sections stay flipped, and dampens
+	// the effect so it stays "drunk" rather than unplayable. Pass 1.0 to reset.
+	void applyGravity(GJBaseGameLayer* gjbgl, float scale) {
+		// Dampen: only apply half of the speed deviation to gravity.
+		float factor = 1.f + (scale - 1.f) * 0.5f;
+		for (auto player : {gjbgl->m_player1, gjbgl->m_player2}) {
+			if (!player) continue;
+			float sign = player->m_gravityMod >= 0.f ? 1.f : -1.f;
+			player->m_gravityMod = sign * factor;
+		}
+	}
+
 	void update(float dt) {
 		auto mod = Mod::get();
 		bool enabled = mod->getSettingValue<bool>("enabled");
 		auto gjbgl = GJBaseGameLayer::get();
 		bool inGameplay = gjbgl != nullptr;
+
+		// The selected preset is the source of truth for behaviour. Only the
+		// "Custom" preset reads the individual Advanced-section settings.
+		DrunkParams params = getPresetParams(mod->getSettingValue<DrunkPreset>("preset"));
 
 		// The trolling panic button overrides everything while held.
 		bool active = enabled && inGameplay && !g_panicHeld;
@@ -91,31 +108,38 @@ class $modify(DrunkScheduler, CCScheduler) {
 		if (active) {
 			s_timer -= dt;
 			if (s_timer <= 0.f) {
-				float minSpeed = static_cast<float>(mod->getSettingValue<double>("min-speed"));
-				float maxSpeed = static_cast<float>(mod->getSettingValue<double>("max-speed"));
-				s_targetScale = utils::random::generate<float>(minSpeed, maxSpeed);
+				float newTarget = utils::random::generate<float>(params.minSpeed, params.maxSpeed);
 
-				if (mod->getSettingValue<bool>("randomize-interval")) {
-					float minInterval = static_cast<float>(mod->getSettingValue<double>("min-interval"));
-					float maxInterval = static_cast<float>(mod->getSettingValue<double>("max-interval"));
-					s_timer = utils::random::generate<float>(minInterval, maxInterval);
+				// Limit how far the target can jump from the current speed in a
+				// single step, so the drift can be kept gentle and gradual.
+				newTarget = std::clamp(newTarget, s_currentScale - params.maxStep, s_currentScale + params.maxStep);
+				s_targetScale = std::clamp(newTarget, params.minSpeed, params.maxSpeed);
+
+				if (params.randomizeInterval) {
+					s_timer = utils::random::generate<float>(params.minInterval, params.maxInterval);
 				} else {
-					s_timer = static_cast<float>(mod->getSettingValue<double>("interval"));
+					s_timer = params.interval;
 				}
 			}
 
 			// Smoothly ease toward the target speed instead of snapping to it.
-			float smoothing = static_cast<float>(mod->getSettingValue<double>("smoothing"));
-			s_currentScale += (s_targetScale - s_currentScale) * std::min(dt * smoothing, 1.f);
+			// "transitionTime" is roughly how many seconds a full change takes,
+			// so larger values make the drift slower and less obvious.
+			float rate = params.transitionTime > 0.01f ? std::min(dt / params.transitionTime, 1.f) : 1.f;
+			s_currentScale += (s_targetScale - s_currentScale) * rate;
 			this->setTimeScale(s_currentScale);
 
-			if (mod->getSettingValue<bool>("music-speed")) {
+			if (params.musicSpeed) {
 				applyMusicSpeed(s_currentScale);
+			}
+
+			if (params.gravityDrift) {
+				applyGravity(gjbgl, s_currentScale);
 			}
 
 			// Shake the screen (using GD's built-in camera shake) when enabled.
 			// Strength scales with how far the speed is from normal.
-			if (mod->getSettingValue<bool>("screen-shake")) {
+			if (params.screenShake) {
 				s_shakeCooldown -= dt;
 				if (s_shakeCooldown <= 0.f) {
 					float strength = std::abs(s_currentScale - 1.f) * 8.f;
@@ -132,8 +156,11 @@ class $modify(DrunkScheduler, CCScheduler) {
 			s_currentScale = 1.f;
 			s_targetScale = 1.f;
 			s_timer = 0.f;
-			if (inGameplay && mod->getSettingValue<bool>("music-speed")) {
+			if (inGameplay && params.musicSpeed) {
 				applyMusicSpeed(1.f);
+			}
+			if (inGameplay && params.gravityDrift) {
+				applyGravity(gjbgl, 1.f);
 			}
 		}
 

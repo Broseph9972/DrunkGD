@@ -29,12 +29,12 @@
 			"type": "custom:preset-selector",
 			"default": "drunk",
 			"enable-if": "enabled",
-			"description": "Quick presets. <cg>Barely Noticeable</c> is a gentle drift, <cy>Drunk</c> is the classic experience, and <cr>Wasted</c> goes wild and shakes the screen. Picking a preset overwrites the advanced values below."
+			"description": "How drunk you want to be. <cg>Barely</c> is a gentle drift, <cb>Annoying</c> jitters constantly, <cy>Drunk</c> is the classic experience, and <cr>Wasted</c> goes wild with shaking and gravity. Pick <cp>Custom</c> to use the Advanced settings below instead."
 		},
 		"advanced-title": {
-			"name": "Advanced",
+			"name": "Advanced (Custom preset only)",
 			"type": "title",
-			"description": "Fine-tune the effect yourself. Changing these leaves the preset selection as-is."
+			"description": "These values are only used when the Custom preset is selected. The other presets ignore them."
 		},
 		"min-speed": {
 			"name": "Min Speed",
@@ -106,17 +106,29 @@
 			"enable-if-description": "Only used when 'Randomize How Often' is on.",
 			"description": "The slowest the speed can re-randomize, in seconds."
 		},
-		"smoothing": {
-			"name": "Smoothing",
+		"max-step": {
+			"name": "Max Change Per Step",
 			"type": "float",
-			"default": 1.5,
-			"min": 0.2,
-			"max": 5.0,
+			"default": 1.0,
+			"min": 0.01,
+			"max": 1.0,
 			"control": {
 				"slider": true
 			},
 			"enable-if": "enabled",
-			"description": "How quickly the speed eases toward each new target. Higher is snappier."
+			"description": "The largest amount the target speed can jump by each time it re-randomizes. Small values make the drift gentle and gradual; 1.0 means no limit."
+		},
+		"transition-time": {
+			"name": "Transition Time",
+			"type": "float",
+			"default": 0.7,
+			"min": 0.0,
+			"max": 8.0,
+			"control": {
+				"slider": true
+			},
+			"enable-if": "enabled",
+			"description": "Roughly how long (in seconds) it takes to glide from one speed to the next. Higher values make the change slower and less obvious; 0 snaps instantly."
 		},
 		"music-speed": {
 			"name": "Change Music Speed",
@@ -131,6 +143,13 @@
 			"default": false,
 			"enable-if": "enabled",
 			"description": "Shake the screen while the speed is drifting (automatically on for the Wasted preset)."
+		},
+		"gravity-drift": {
+			"name": "Gravity Drift",
+			"type": "bool",
+			"default": false,
+			"enable-if": "enabled",
+			"description": "Also subtly warp the player's gravity along with the speed, making jumps feel heavier/floatier (automatically on for the Wasted preset). Warning: this makes levels genuinely harder."
 		},
 		"trolling-title": {
 			"name": "Trolling",

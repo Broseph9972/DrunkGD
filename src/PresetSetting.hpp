@@ -8,14 +8,16 @@
 using namespace geode::prelude;
 
 /**
- * The three "how drunk are you" presets the user can pick from at the top of
- * the settings. Each one applies a bundle of values to the advanced settings.
+ * The "how drunk are you" presets the user can pick from at the top of the
+ * settings. Each preset (except Custom) is the source of truth at runtime;
+ * Custom reads the individual values from the Advanced section instead.
  */
 enum class DrunkPreset {
 	BarelyNoticeable,
 	Annoying,
 	Drunk,
 	Wasted,
+	Custom,
 };
 
 /**
@@ -30,6 +32,7 @@ struct matjson::Serialize<DrunkPreset> {
 			case DrunkPreset::Annoying: return "annoying";
 			case DrunkPreset::Drunk: return "drunk";
 			case DrunkPreset::Wasted: return "wasted";
+			case DrunkPreset::Custom: return "custom";
 		}
 		return "drunk";
 	}
@@ -38,6 +41,7 @@ struct matjson::Serialize<DrunkPreset> {
 		if (str == "barely") return Ok(DrunkPreset::BarelyNoticeable);
 		if (str == "annoying") return Ok(DrunkPreset::Annoying);
 		if (str == "wasted") return Ok(DrunkPreset::Wasted);
+		if (str == "custom") return Ok(DrunkPreset::Custom);
 		return Ok(DrunkPreset::Drunk);
 	}
 };
@@ -53,52 +57,59 @@ struct geode::SettingTypeForValueType<DrunkPreset> {
 };
 
 /**
- * Applies a preset's bundle of values to the individual advanced settings.
- * Kept free so both the setting node and $on_mod(Loaded) can reuse it.
+ * The full bundle of parameters that drive the drift effect. The scheduler
+ * hook reads one of these every frame based on the selected preset.
  */
-inline void applyDrunkPreset(DrunkPreset preset) {
-	auto mod = Mod::get();
+struct DrunkParams {
+	float minSpeed;
+	float maxSpeed;
+	bool randomizeInterval;
+	float interval;      // used when randomizeInterval is false
+	float minInterval;
+	float maxInterval;
+	float maxStep;       // largest jump per re-randomize (1.0 = no limit)
+	float transitionTime;
+	bool musicSpeed;
+	bool screenShake;
+	bool gravityDrift;
+};
+
+/**
+ * Returns the parameters for a given preset. For Custom, the values are read
+ * live from the Advanced-section settings; every other preset uses fixed,
+ * hand-tuned values and ignores the Advanced section entirely.
+ */
+inline DrunkParams getPresetParams(DrunkPreset preset) {
 	switch (preset) {
 		case DrunkPreset::BarelyNoticeable:
-			mod->setSettingValue<double>("min-speed", 0.97);
-			mod->setSettingValue<double>("max-speed", 1.03);
-			mod->setSettingValue<bool>("randomize-interval", true);
-			mod->setSettingValue<double>("min-interval", 8.0);
-			mod->setSettingValue<double>("max-interval", 13.0);
-			mod->setSettingValue<double>("smoothing", 0.6);
-			mod->setSettingValue<bool>("music-speed", true);
-			mod->setSettingValue<bool>("screen-shake", false);
-			break;
+			// Tiny, slow, occasional drift.
+			return { 0.96f, 1.04f, true, 0.f, 14.f, 22.f, 0.03f, 4.0f, true, false, false };
 		case DrunkPreset::Annoying:
-			mod->setSettingValue<double>("min-speed", 0.96);
-			mod->setSettingValue<double>("max-speed", 1.04);
-			mod->setSettingValue<bool>("randomize-interval", true);
-			mod->setSettingValue<double>("min-interval", 0.2);
-			mod->setSettingValue<double>("max-interval", 0.6);
-			mod->setSettingValue<double>("smoothing", 5.0);
-			mod->setSettingValue<bool>("music-speed", true);
-			mod->setSettingValue<bool>("screen-shake", false);
-			break;
+			// Small range but changes constantly and snaps quickly.
+			return { 0.96f, 1.04f, true, 0.f, 0.2f, 0.6f, 1.0f, 0.12f, true, false, false };
 		case DrunkPreset::Drunk:
-			mod->setSettingValue<double>("min-speed", 0.80);
-			mod->setSettingValue<double>("max-speed", 1.20);
-			mod->setSettingValue<bool>("randomize-interval", true);
-			mod->setSettingValue<double>("min-interval", 2.0);
-			mod->setSettingValue<double>("max-interval", 6.0);
-			mod->setSettingValue<double>("smoothing", 1.5);
-			mod->setSettingValue<bool>("music-speed", true);
-			mod->setSettingValue<bool>("screen-shake", false);
-			break;
+			// The classic experience.
+			return { 0.80f, 1.20f, true, 0.f, 2.0f, 6.0f, 1.0f, 0.7f, true, false, false };
 		case DrunkPreset::Wasted:
-			mod->setSettingValue<double>("min-speed", 0.60);
-			mod->setSettingValue<double>("max-speed", 1.50);
-			mod->setSettingValue<bool>("randomize-interval", true);
-			mod->setSettingValue<double>("min-interval", 1.0);
-			mod->setSettingValue<double>("max-interval", 4.0);
-			mod->setSettingValue<double>("smoothing", 2.5);
-			mod->setSettingValue<bool>("music-speed", true);
-			mod->setSettingValue<bool>("screen-shake", true);
-			break;
+			// Wild swings, shaking, and warped gravity.
+			return { 0.75f, 1.50f, true, 0.f, 1.0f, 6.0f, 1.0f, 0.4f, true, true, true };
+		case DrunkPreset::Custom:
+		default: {
+			auto mod = Mod::get();
+			return {
+				static_cast<float>(mod->getSettingValue<double>("min-speed")),
+				static_cast<float>(mod->getSettingValue<double>("max-speed")),
+				mod->getSettingValue<bool>("randomize-interval"),
+				static_cast<float>(mod->getSettingValue<double>("interval")),
+				static_cast<float>(mod->getSettingValue<double>("min-interval")),
+				static_cast<float>(mod->getSettingValue<double>("max-interval")),
+				static_cast<float>(mod->getSettingValue<double>("max-step")),
+				static_cast<float>(mod->getSettingValue<double>("transition-time")),
+				mod->getSettingValue<bool>("music-speed"),
+				mod->getSettingValue<bool>("screen-shake"),
+				mod->getSettingValue<bool>("gravity-drift"),
+			};
+		}
 	}
 }
 
@@ -141,11 +152,12 @@ protected:
 			{ DrunkPreset::Annoying, "Annoying", { 90, 190, 235 } },
 			{ DrunkPreset::Drunk, "Drunk", { 240, 190, 60 } },
 			{ DrunkPreset::Wasted, "Wasted", { 230, 60, 60 } },
+			{ DrunkPreset::Custom, "Custom", { 210, 130, 235 } },
 		};
 
 		for (auto const& entry : entries) {
 			auto spr = ButtonSprite::create(entry.label, "bigFont.fnt", "GJ_button_04.png", .8f);
-			spr->setScale(.42f);
+			spr->setScale(.38f);
 			spr->m_label->setColor(entry.color);
 			auto btn = CCMenuItemSpriteExtra::create(
 				spr, this, menu_selector(PresetSettingNodeV3::onPreset)
@@ -155,8 +167,8 @@ protected:
 			m_buttons.push_back({ btn, entry.preset });
 		}
 
-		this->getButtonMenu()->setContentWidth(200.f);
-		this->getButtonMenu()->setLayout(RowLayout::create()->setGap(3.f));
+		this->getButtonMenu()->setContentWidth(240.f);
+		this->getButtonMenu()->setLayout(RowLayout::create()->setGap(2.f));
 
 		this->updateState(nullptr);
 		return true;
@@ -177,14 +189,13 @@ protected:
 			// Selected button is bright and slightly bigger; others dim.
 			btn->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
 			spr->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
-			spr->setScale(selected ? .5f : .42f);
+			spr->setScale(selected ? .46f : .38f);
 		}
 	}
 
 	void onPreset(CCObject* sender) {
 		auto preset = static_cast<DrunkPreset>(sender->getTag());
 		this->setValue(preset, static_cast<CCNode*>(sender));
-		applyDrunkPreset(preset);
 	}
 
 public:
