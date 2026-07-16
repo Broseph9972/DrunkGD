@@ -13,6 +13,7 @@ using namespace geode::prelude;
  */
 enum class DrunkPreset {
 	BarelyNoticeable,
+	Annoying,
 	Drunk,
 	Wasted,
 };
@@ -26,6 +27,7 @@ struct matjson::Serialize<DrunkPreset> {
 	static matjson::Value toJson(DrunkPreset const& value) {
 		switch (value) {
 			case DrunkPreset::BarelyNoticeable: return "barely";
+			case DrunkPreset::Annoying: return "annoying";
 			case DrunkPreset::Drunk: return "drunk";
 			case DrunkPreset::Wasted: return "wasted";
 		}
@@ -34,6 +36,7 @@ struct matjson::Serialize<DrunkPreset> {
 	static Result<DrunkPreset> fromJson(matjson::Value const& json) {
 		GEODE_UNWRAP_INTO(auto str, json.asString());
 		if (str == "barely") return Ok(DrunkPreset::BarelyNoticeable);
+		if (str == "annoying") return Ok(DrunkPreset::Annoying);
 		if (str == "wasted") return Ok(DrunkPreset::Wasted);
 		return Ok(DrunkPreset::Drunk);
 	}
@@ -57,12 +60,22 @@ inline void applyDrunkPreset(DrunkPreset preset) {
 	auto mod = Mod::get();
 	switch (preset) {
 		case DrunkPreset::BarelyNoticeable:
-			mod->setSettingValue<double>("min-speed", 0.95);
-			mod->setSettingValue<double>("max-speed", 1.05);
+			mod->setSettingValue<double>("min-speed", 0.97);
+			mod->setSettingValue<double>("max-speed", 1.03);
 			mod->setSettingValue<bool>("randomize-interval", true);
-			mod->setSettingValue<double>("min-interval", 3.0);
-			mod->setSettingValue<double>("max-interval", 8.0);
-			mod->setSettingValue<double>("smoothing", 1.5);
+			mod->setSettingValue<double>("min-interval", 8.0);
+			mod->setSettingValue<double>("max-interval", 13.0);
+			mod->setSettingValue<double>("smoothing", 0.6);
+			mod->setSettingValue<bool>("music-speed", true);
+			mod->setSettingValue<bool>("screen-shake", false);
+			break;
+		case DrunkPreset::Annoying:
+			mod->setSettingValue<double>("min-speed", 0.96);
+			mod->setSettingValue<double>("max-speed", 1.04);
+			mod->setSettingValue<bool>("randomize-interval", true);
+			mod->setSettingValue<double>("min-interval", 0.2);
+			mod->setSettingValue<double>("max-interval", 0.6);
+			mod->setSettingValue<double>("smoothing", 5.0);
 			mod->setSettingValue<bool>("music-speed", true);
 			mod->setSettingValue<bool>("screen-shake", false);
 			break;
@@ -108,7 +121,7 @@ public:
 };
 
 /**
- * The UI node: three colored buttons the user picks between.
+ * The UI node: four colored buttons the user picks between.
  */
 class PresetSettingNodeV3 : public SettingValueNodeV3<PresetSettingV3> {
 protected:
@@ -125,13 +138,14 @@ protected:
 		};
 		const Entry entries[] = {
 			{ DrunkPreset::BarelyNoticeable, "Barely", { 90, 220, 90 } },
+			{ DrunkPreset::Annoying, "Annoying", { 90, 190, 235 } },
 			{ DrunkPreset::Drunk, "Drunk", { 240, 190, 60 } },
 			{ DrunkPreset::Wasted, "Wasted", { 230, 60, 60 } },
 		};
 
 		for (auto const& entry : entries) {
 			auto spr = ButtonSprite::create(entry.label, "bigFont.fnt", "GJ_button_04.png", .8f);
-			spr->setScale(.5f);
+			spr->setScale(.42f);
 			spr->m_label->setColor(entry.color);
 			auto btn = CCMenuItemSpriteExtra::create(
 				spr, this, menu_selector(PresetSettingNodeV3::onPreset)
@@ -141,8 +155,8 @@ protected:
 			m_buttons.push_back({ btn, entry.preset });
 		}
 
-		this->getButtonMenu()->setContentWidth(150.f);
-		this->getButtonMenu()->setLayout(RowLayout::create()->setGap(4.f));
+		this->getButtonMenu()->setContentWidth(200.f);
+		this->getButtonMenu()->setLayout(RowLayout::create()->setGap(3.f));
 
 		this->updateState(nullptr);
 		return true;
@@ -163,7 +177,7 @@ protected:
 			// Selected button is bright and slightly bigger; others dim.
 			btn->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
 			spr->setOpacity(shouldEnable ? (selected ? 255 : 130) : 90);
-			spr->setScale(selected ? .58f : .5f);
+			spr->setScale(selected ? .5f : .42f);
 		}
 	}
 

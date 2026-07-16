@@ -18,6 +18,12 @@
 			"default": false,
 			"description": "Whether the randomized speed drift effect is active during gameplay."
 		},
+		"pause-menu-button": {
+			"name": "Show Button in Pause Menu",
+			"type": "bool",
+			"default": false,
+			"description": "Adds a DrunkGD button to the in-game pause menu that opens this same settings menu."
+		},
 		"preset": {
 			"name": "Preset",
 			"type": "custom:preset-selector",

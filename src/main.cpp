@@ -3,10 +3,14 @@
  */
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CCScheduler.hpp>
+#include <Geode/modify/PauseLayer.hpp>
 #include <Geode/binding/GJBaseGameLayer.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
+#include <Geode/binding/ButtonSprite.hpp>
 #include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/SettingV3.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/random.hpp>
 
 #include "PresetSetting.hpp"
@@ -142,6 +146,36 @@ class $modify(DrunkScheduler, CCScheduler) {
 		}
 
 		CCScheduler::update(dt);
+	}
+};
+
+/**
+ * Optionally add a DrunkGD button to the pause menu that opens the mod's
+ * settings popup (the exact same menu as in the mod list).
+ */
+class $modify(DrunkPauseLayer, PauseLayer) {
+	void customSetup() {
+		PauseLayer::customSetup();
+
+		if (!Mod::get()->getSettingValue<bool>("pause-menu-button")) return;
+
+		auto spr = ButtonSprite::create("Drunk", "bigFont.fnt", "GJ_button_04.png", .8f);
+		spr->setScale(0.6f);
+		auto btn = CCMenuItemSpriteExtra::create(
+			spr, this, menu_selector(DrunkPauseLayer::onDrunkSettings)
+		);
+		btn->setID("drunk-settings-button"_spr);
+
+		auto menu = CCMenu::create();
+		menu->setID("drunk-settings-menu"_spr);
+		menu->addChild(btn);
+		auto winSize = CCDirector::sharedDirector()->getWinSize();
+		menu->setPosition({winSize.width / 2.f, 20.f});
+		this->addChild(menu, 100);
+	}
+
+	void onDrunkSettings(CCObject*) {
+		openSettingsPopup(Mod::get());
 	}
 };
 
