@@ -72,45 +72,130 @@ struct DrunkParams {
 	bool musicSpeed;
 	bool screenShake;
 	bool gravityDrift;
+
+	// Builds a DrunkParams from a JSON object, falling back to the given
+	// defaults for any keys that are missing or the wrong type. This makes the
+	// preset definitions below easy to read and edit by hand.
+	static DrunkParams fromJson(matjson::Value const& j, DrunkParams const& def = {}) {
+		auto num = [&](const char* key, float fallback) -> float {
+			return static_cast<float>(j.contains(key) ? j[key].asDouble().unwrapOr(fallback) : fallback);
+		};
+		auto flag = [&](const char* key, bool fallback) -> bool {
+			return j.contains(key) ? j[key].asBool().unwrapOr(fallback) : fallback;
+		};
+		return {
+			num("min-speed", def.minSpeed),
+			num("max-speed", def.maxSpeed),
+			flag("randomize-interval", def.randomizeInterval),
+			num("interval", def.interval),
+			num("min-interval", def.minInterval),
+			num("max-interval", def.maxInterval),
+			num("max-step", def.maxStep),
+			num("transition-time", def.transitionTime),
+			flag("music-speed", def.musicSpeed),
+			flag("screen-shake", def.screenShake),
+			flag("gravity-drift", def.gravityDrift),
+		};
+	}
 };
 
 /**
+ * The built-in presets, written as plain JSON so they're easy to tweak by hand.
+ * Each object maps directly onto a DrunkParams. Any key you leave out just
+ * falls back to a sensible default. To change how a preset feels, edit the
+ * numbers here and rebuild. (The "custom" preset is handled separately - it
+ * reads live from the Advanced-section settings instead.)
+ */
+inline matjson::Value const& drunkPresetJson() {
+	static matjson::Value presets = matjson::parse(R"({
+		"barely": {
+			"comment":           "Tiny, slow, occasional drift.",
+			"min-speed":         0.96,
+			"max-speed":         1.04,
+			"randomize-interval": true,
+			"min-interval":      14.0,
+			"max-interval":      22.0,
+			"max-step":          0.03,
+			"transition-time":   4.0,
+			"music-speed":       true,
+			"screen-shake":      false,
+			"gravity-drift":     false
+		},
+		"annoying": {
+			"comment":           "Small range but changes constantly and snaps quickly.",
+			"min-speed":         0.96,
+			"max-speed":         1.04,
+			"randomize-interval": true,
+			"min-interval":      0.2,
+			"max-interval":      0.6,
+			"max-step":          1.0,
+			"transition-time":   0.12,
+			"music-speed":       true,
+			"screen-shake":      false,
+			"gravity-drift":     false
+		},
+		"drunk": {
+			"comment":           "The classic experience.",
+			"min-speed":         0.80,
+			"max-speed":         1.20,
+			"randomize-interval": true,
+			"min-interval":      2.0,
+			"max-interval":      6.0,
+			"max-step":          1.0,
+			"transition-time":   0.7,
+			"music-speed":       true,
+			"screen-shake":      false,
+			"gravity-drift":     false
+		},
+		"wasted": {
+			"comment":           "Wild swings, shaking, and warped gravity.",
+			"min-speed":         0.75,
+			"max-speed":         1.50,
+			"randomize-interval": true,
+			"min-interval":      1.0,
+			"max-interval":      6.0,
+			"max-step":          1.0,
+			"transition-time":   0.4,
+			"music-speed":       true,
+			"screen-shake":      true,
+			"gravity-drift":     true
+		}
+	})").unwrapOr(matjson::Value::object());
+	return presets;
+}
+
+/**
  * Returns the parameters for a given preset. For Custom, the values are read
- * live from the Advanced-section settings; every other preset uses fixed,
- * hand-tuned values and ignores the Advanced section entirely.
+ * live from the Advanced-section settings; every other preset uses the values
+ * from the JSON above and ignores the Advanced section entirely.
  */
 inline DrunkParams getPresetParams(DrunkPreset preset) {
-	switch (preset) {
-		case DrunkPreset::BarelyNoticeable:
-			// Tiny, slow, occasional drift.
-			return { 0.96f, 1.04f, true, 0.f, 14.f, 22.f, 0.03f, 4.0f, true, false, false };
-		case DrunkPreset::Annoying:
-			// Small range but changes constantly and snaps quickly.
-			return { 0.96f, 1.04f, true, 0.f, 0.2f, 0.6f, 1.0f, 0.12f, true, false, false };
-		case DrunkPreset::Drunk:
-			// The classic experience.
-			return { 0.80f, 1.20f, true, 0.f, 2.0f, 6.0f, 1.0f, 0.7f, true, false, false };
-		case DrunkPreset::Wasted:
-			// Wild swings, shaking, and warped gravity.
-			return { 0.75f, 1.50f, true, 0.f, 1.0f, 6.0f, 1.0f, 0.4f, true, true, true };
-		case DrunkPreset::Custom:
-		default: {
-			auto mod = Mod::get();
-			return {
-				static_cast<float>(mod->getSettingValue<double>("min-speed")),
-				static_cast<float>(mod->getSettingValue<double>("max-speed")),
-				mod->getSettingValue<bool>("randomize-interval"),
-				static_cast<float>(mod->getSettingValue<double>("interval")),
-				static_cast<float>(mod->getSettingValue<double>("min-interval")),
-				static_cast<float>(mod->getSettingValue<double>("max-interval")),
-				static_cast<float>(mod->getSettingValue<double>("max-step")),
-				static_cast<float>(mod->getSettingValue<double>("transition-time")),
-				mod->getSettingValue<bool>("music-speed"),
-				mod->getSettingValue<bool>("screen-shake"),
-				mod->getSettingValue<bool>("gravity-drift"),
-			};
-		}
+	if (preset == DrunkPreset::Custom) {
+		auto mod = Mod::get();
+		return {
+			static_cast<float>(mod->getSettingValue<double>("min-speed")),
+			static_cast<float>(mod->getSettingValue<double>("max-speed")),
+			mod->getSettingValue<bool>("randomize-interval"),
+			static_cast<float>(mod->getSettingValue<double>("interval")),
+			static_cast<float>(mod->getSettingValue<double>("min-interval")),
+			static_cast<float>(mod->getSettingValue<double>("max-interval")),
+			static_cast<float>(mod->getSettingValue<double>("max-step")),
+			static_cast<float>(mod->getSettingValue<double>("transition-time")),
+			mod->getSettingValue<bool>("music-speed"),
+			mod->getSettingValue<bool>("screen-shake"),
+			mod->getSettingValue<bool>("gravity-drift"),
+		};
 	}
+
+	// Sensible fallback used if a key is missing from the JSON.
+	static const DrunkParams defaults = { 0.80f, 1.20f, true, 4.f, 2.f, 6.f, 1.f, 0.7f, true, false, false };
+
+	std::string key = matjson::Serialize<DrunkPreset>::toJson(preset).asString().unwrapOr("drunk");
+	auto const& presets = drunkPresetJson();
+	if (presets.contains(key)) {
+		return DrunkParams::fromJson(presets[key], defaults);
+	}
+	return defaults;
 }
 
 /**
